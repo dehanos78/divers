@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sakura — Oefenbegeleiding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+<style>
+  :root {
+    --ink: #2a1a1f;
+    --ink-soft: #5a4651;
+    --paper: #fdf5f1;
+    --paper-warm: #faeae0;
+    --blossom: #e89aae;
+    --blossom-deep: #b85c7a;
+    --blossom-pale: #f7d4dc;
+    --gold: #c9a567;
+    --gold-deep: #9c7d3f;
+    --moss: #6b7d5a;
+    --mute: #b9a8ad;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; min-height: 100vh;
+    font-family: 'Inter', sans-serif; color: var(--ink);
+    background: radial-gradient(ellipse at top, var(--paper) 0%, var(--paper-warm) 60%, #f4dcd0 100%);
+    overflow-x: hidden;
+  }
+  .petals { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .petal {
+    position: absolute; width: 14px; height: 14px;
+    background: radial-gradient(ellipse at 30% 30%, #ffd6e0 0%, var(--blossom) 70%, var(--blossom-deep) 100%);
+    border-radius: 0 100% 0 100%; opacity: 0.55;
+    animation: fall linear infinite;
+  }
+  @keyframes fall {
+    0%   { transform: translateY(-10vh) translateX(0) rotate(0deg); }
+    100% { transform: translateY(110vh) translateX(40px) rotate(720deg); }
+  }
+  main { position: relative; z-index: 1; max-width: 620px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+  header { text-align: center; margin-bottom: 2.5rem; }
+  .kanji {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 4.5rem; color: var(--blossom-deep);
+    line-height: 1; margin-bottom: 0.5rem; letter-spacing: 0.05em;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif; font-weight: 300;
+    font-size: 2.2rem; margin: 0 0 0.3rem; letter-spacing: 0.02em;
+  }
+  .subtitle {
+    color: var(--ink-soft); font-size: 0.95rem; font-style: italic;
+    font-family: 'Cormorant Garamond', serif; font-weight: 400;
+  }
+  .card {
+    background: rgba(255, 251, 247, 0.7);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(184, 92, 122, 0.15);
+    border-radius: 4px; padding: 2rem 1.75rem; margin-bottom: 1.25rem;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset, 0 20px 40px -20px rgba(184, 92, 122, 0.15);
+  }
+  .section-label {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.25em;
+    color: var(--blossom-deep); margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .section-label::before, .section-label::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--blossom-pale), transparent);
+  }
+  .voices { display: grid; grid-template-columns: 1fr; gap: 0.6rem; }
+  @media (min-width: 480px) {
+    .voices { grid-template-columns: repeat(3, 1fr); }
+  }
+  .voice {
+    padding: 0.9rem 1rem; background: white;
+    border: 1.5px solid var(--blossom-pale); border-radius: 4px;
+    cursor: pointer; transition: all 0.25s ease; user-select: none;
+    position: relative; display: flex; flex-direction: column; gap: 0.35rem;
+  }
+  .voice:hover { transform: translateY(-1px); }
+  .voice-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem; font-weight: 500; color: var(--ink);
+  }
+  .voice-state {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em;
+    color: var(--blossom-deep); font-weight: 500;
+  }
+  .voice.mee { background: white; border-color: var(--blossom-pale); }
+  .voice.mee .voice-name { color: var(--ink); }
+  .voice.mee .voice-state { color: var(--blossom-deep); }
+  .voice.focus {
+    background: linear-gradient(135deg, #fdf0d8 0%, #fbe4b8 100%);
+    border-color: var(--gold);
+    box-shadow: 0 4px 16px -4px rgba(201, 165, 103, 0.5), 0 0 0 4px rgba(201, 165, 103, 0.1);
+  }
+  .voice.focus .voice-name { color: var(--gold-deep); font-weight: 600; }
+  .voice.focus .voice-state { color: var(--gold-deep); }
+  .voice.focus::after {
+    content: '✦'; position: absolute; top: 0.5rem; right: 0.75rem;
+    color: var(--gold); font-size: 0.9rem;
+  }
+  .voice.uit { background: #f5eeec; border-color: #e6dad6; opacity: 0.55; }
+  .voice.uit .voice-name { color: var(--mute); text-decoration: line-through; text-decoration-color: rgba(0,0,0,0.2); }
+  .voice.uit .voice-state { color: var(--mute); }
+  .key-hint {
+    text-align: center; color: var(--ink-soft); font-size: 0.85rem;
+    margin-top: 0.85rem;
+    font-family: 'Cormorant Garamond', serif; font-style: italic; line-height: 1.5;
+  }
+  .tempo-row { display: flex; align-items: center; gap: 1rem; }
+  .tempo-row label {
+    font-family: 'Cormorant Garamond', serif; font-size: 1.05rem;
+    color: var(--ink-soft); white-space: nowrap;
+  }
+  .tempo-value {
+    font-family: 'Shippori Mincho', serif; font-weight: 500;
+    color: var(--blossom-deep); font-size: 1.2rem;
+    min-width: 3.5rem; text-align: right;
+  }
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none;
+    flex: 1; height: 2px; background: var(--blossom-pale); outline: none; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 18px; height: 18px; background: var(--blossom-deep);
+    border-radius: 50%; cursor: pointer; border: 3px solid var(--paper);
+    box-shadow: 0 2px 6px rgba(184,92,122,0.4); transition: transform 0.15s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px; height: 18px; background: var(--blossom-deep);
+    border-radius: 50%; cursor: pointer; border: 3px solid var(--paper);
+  }
+  .transport {
+    display: flex; justify-content: center; align-items: center;
+    gap: 0.75rem; margin: 2rem 0 1.5rem; flex-wrap: wrap;
+  }
+  .play-btn {
+    width: 76px; height: 76px; border-radius: 50%; border: none;
+    background: var(--blossom-deep); color: white; font-size: 1.8rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 30px -8px rgba(184,92,122,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .play-btn:hover { transform: scale(1.05); }
+  .play-btn:active { transform: scale(0.96); }
+  .secondary-btn {
+    width: 48px; height: 48px; border-radius: 50%;
+    border: 1px solid var(--blossom-pale); background: white;
+    color: var(--ink-soft); font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease;
+  }
+  .secondary-btn:hover { border-color: var(--blossom); color: var(--blossom-deep); }
+  .secondary-btn.active { background: var(--moss); color: white; border-color: var(--moss); }
+  .skip-btn { font-size: 0.9rem; font-weight: 500; font-family: 'Inter', sans-serif; }
+
+  .position-info {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-top: 0.5rem; margin-bottom: 0.5rem;
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--ink-soft); font-style: italic;
+  }
+  .measure-display {
+    font-family: 'Shippori Mincho', serif; font-style: normal;
+    color: var(--blossom-deep); font-size: 1.1rem; font-weight: 500;
+  }
+  .time-display {
+    font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums;
+    font-size: 0.85rem; color: var(--ink-soft);
+  }
+
+  .progress-wrap { position: relative; padding: 14px 0; cursor: pointer; user-select: none; }
+  .progress-track {
+    height: 8px; background: var(--blossom-pale); border-radius: 4px;
+    position: relative; overflow: visible;
+  }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--blossom), var(--blossom-deep));
+    border-radius: 4px; pointer-events: none;
+    position: absolute; top: 0; left: 0;
+    transition: width 0.08s linear;
+  }
+  .progress-tick {
+    position: absolute; top: -3px;
+    height: calc(100% + 6px); width: 1.5px;
+    background: rgba(184, 92, 122, 0.35);
+    pointer-events: none;
+  }
+  .progress-thumb {
+    position: absolute; top: 50%;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--blossom-deep); border: 2.5px solid white;
+    box-shadow: 0 2px 8px rgba(184, 92, 122, 0.5);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    transition: transform 0.15s, left 0.08s linear;
+    left: 0%;
+  }
+  .progress-wrap:hover .progress-thumb { transform: translate(-50%, -50%) scale(1.25); }
+  .progress-wrap.dragging .progress-thumb { transform: translate(-50%, -50%) scale(1.35); }
+
+  .progress-tooltip {
+    position: absolute; bottom: calc(100% - 4px); left: 0;
+    transform: translateX(-50%);
+    background: var(--ink); color: white;
+    padding: 0.3rem 0.55rem; border-radius: 3px;
+    font-size: 0.7rem; font-family: 'Inter', sans-serif;
+    letter-spacing: 0.05em; white-space: nowrap;
+    pointer-events: none; opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .progress-tooltip::after {
+    content: ''; position: absolute;
+    top: 100%; left: 50%; transform: translateX(-50%);
+    border: 4px solid transparent; border-top-color: var(--ink);
+  }
+  .progress-wrap:hover .progress-tooltip { opacity: 0.95; }
+
+  .status-bar {
+    text-align: center; font-family: 'Cormorant Garamond', serif;
+    font-style: italic; font-size: 1rem; color: var(--ink-soft); min-height: 1.4em;
+    margin-top: 0.5rem;
+  }
+  .lyrics-panel {
+    margin-top: 1.5rem; text-align: center;
+    font-family: 'Shippori Mincho', serif; color: var(--ink-soft);
+    font-size: 0.95rem; line-height: 1.8; padding: 1rem;
+    border-top: 1px solid var(--blossom-pale);
+    border-bottom: 1px solid var(--blossom-pale);
+  }
+  .lyrics-line {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 0.3em 0.7em; margin: 0.25rem 0;
+  }
+  .lyrics-line span {
+    padding: 2px 8px; border-radius: 6px; cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease;
+  }
+  .lyrics-line span:hover {
+    background: rgba(232, 152, 178, 0.18);
+  }
+  .lyrics-line span.active {
+    background: rgba(232, 152, 178, 0.4);
+    color: var(--ink); font-weight: 500;
+  }
+  .lyrics-panel small {
+    display: block; margin-top: 0.5rem;
+    color: var(--gold); font-size: 0.8rem; font-style: italic;
+  }
+  footer {
+    text-align: center; margin-top: 2rem; font-size: 0.8rem;
+    color: var(--ink-soft); opacity: 0.7; font-style: italic;
+    font-family: 'Cormorant Garamond', serif;
+  }
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals"></div>
+
+<main>
+  <header>
+    <div class="kanji">櫻</div>
+    <h1>Sakura</h1>
+    <div class="subtitle">oefenbegeleiding · drie vrouwenstemmen · B-mineur</div>
+  </header>
+
+  <div class="card">
+    <div class="section-label">Stemmen</div>
+    <div class="voices">
+      <div class="voice mee" data-voice="s1">
+        <span class="voice-name">Sopraan 1</span>
+        <span class="voice-state">mee</span>
+      </div>
+      <div class="voice mee" data-voice="s2">
+        <span class="voice-name">Sopraan 2</span>
+        <span class="voice-state">mee</span>
+      </div>
+      <div class="voice mee" data-voice="a">
+        <span class="voice-name">Alt</span>
+        <span class="voice-state">mee</span>
+      </div>
+    </div>
+    <div class="key-hint">
+      tik om door te schakelen: <b>mee</b> → <b>focus</b> → <b>uit</b><br>
+      kies <b>focus</b> op jouw eigen stem — die wordt hard, de andere twee blijven zacht hoorbaar
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">Tempo</div>
+    <div class="tempo-row">
+      <label>♩ =</label>
+      <input type="range" id="tempo" min="40" max="120" value="72" step="1">
+      <span class="tempo-value" id="tempoValue">72</span>
+    </div>
+
+    <div class="transport">
+      <button class="secondary-btn" id="loopBtn" title="Herhalen">↻</button>
+      <button class="secondary-btn skip-btn" id="prevBtn" title="Maat terug">−1</button>
+      <button class="play-btn" id="playBtn" aria-label="Afspelen">▶</button>
+      <button class="secondary-btn skip-btn" id="nextBtn" title="Maat vooruit">+1</button>
+      <button class="secondary-btn" id="stopBtn" title="Stop">■</button>
+    </div>
+
+    <div class="position-info">
+      <span class="measure-display" id="measureDisplay">Maat 1 / 14</span>
+      <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
+    </div>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-track" id="progressTrack">
+        <div class="progress-fill" id="progressFill"></div>
+        <div class="progress-thumb" id="progressThumb"></div>
+        <div class="progress-tooltip" id="progressTooltip">Maat 1</div>
+      </div>
+    </div>
+    <div class="status-bar" id="status">klik op de balk om naar een maat te springen</div>
+
+    <div class="lyrics-panel">
+      <div class="lyrics-line">
+        <span data-measure="1">Sa - ku - ra,</span>
+        <span data-measure="2">sa - ku - ra,</span>
+        <span data-measure="3">no - ya - ma mo</span>
+        <span data-measure="4">sa - to mo</span>
+        <span data-measure="5">mi - wa - ta - su</span>
+        <span data-measure="6">ka - gi - ri.</span>
+      </div>
+      <div class="lyrics-line">
+        <span data-measure="7">Ka - su - mi ka</span>
+        <span data-measure="8">ku - mo ka</span>
+        <span data-measure="9">a - sa - hi ni</span>
+        <span data-measure="10">ni - o - u.</span>
+      </div>
+      <div class="lyrics-line">
+        <span data-measure="11">Sa - ku - ra,</span>
+        <span data-measure="12">sa - ku - ra,</span>
+        <span data-measure="13">ha - na za - ka</span>
+        <span data-measure="14">- ri.</span>
+      </div>
+      <small>kersenbloesems in volle bloei</small>
+    </div>
+  </div>
+
+  <footer>traditioneel Japans volkslied · arrangement in B-mineur (2 kruizen)</footer>
+</main>
+
+<script>
+// Petals decoration
+(function() {
+  const c = document.getElementById('petals');
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'petal';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.animationDuration = (10 + Math.random() * 12) + 's';
+    p.style.animationDelay = (-Math.random() * 12) + 's';
+    p.style.transform = `scale(${0.5 + Math.random() * 0.9})`;
+    p.style.opacity = 0.3 + Math.random() * 0.4;
+    c.appendChild(p);
+  }
+})();
+
+// ============================================================
+// Music data — Sakura in B minor, 14 measures, 4/4
+// ============================================================
+const s1Notes = [
+  // m1: Sa-ku-ra
+  ["0:0:0","B4","4n"], ["0:1:0","B4","4n"], ["0:2:0","C#5","2n"],
+  // m2: sa-ku-ra
+  ["1:0:0","B4","4n"], ["1:1:0","B4","4n"], ["1:2:0","C#5","2n"],
+  // m3: no-ya-ma mo
+  ["2:0:0","B4","4n"], ["2:1:0","C#5","4n"], ["2:2:0","D5","4n"], ["2:3:0","C#5","4n"],
+  // m4: sa-to__ mo  (melisme op "to": C#5-B4)
+  ["3:0:0","B4","4n"], ["3:1:0","C#5","8n"], ["3:1:2","B4","8n"], ["3:2:0","G4","2n"],
+  // m5: mi-wa-ta-su  (S1 dipt naar D4 en eindigt op G4)
+  ["4:0:0","F#4","4n"], ["4:1:0","D4","4n"], ["4:2:0","F#4","4n"], ["4:3:0","G4","4n"],
+  // m6: ka-gi-ri  (melisme op "gi": F#4-D4)
+  ["5:0:0","F#4","4n"], ["5:1:0","F#4","8n"], ["5:1:2","D4","8n"], ["5:2:0","C#4","2n"],
+  // m7: Ka-su-mi ka  (zelfde als m3)
+  ["6:0:0","B4","4n"], ["6:1:0","C#5","4n"], ["6:2:0","D5","4n"], ["6:3:0","C#5","4n"],
+  // m8: ku-mo__ ka  (zelfde als m4)
+  ["7:0:0","B4","4n"], ["7:1:0","C#5","8n"], ["7:1:2","B4","8n"], ["7:2:0","G4","2n"],
+  // m9: a-sa-hi ni  (zelfde als m5)
+  ["8:0:0","F#4","4n"], ["8:1:0","D4","4n"], ["8:2:0","F#4","4n"], ["8:3:0","G4","4n"],
+  // m10: ni-o-u  (zelfde als m6)
+  ["9:0:0","F#4","4n"], ["9:1:0","F#4","8n"], ["9:1:2","D4","8n"], ["9:2:0","C#4","2n"],
+  // m11: Sa-ku-ra
+  ["10:0:0","B4","4n"], ["10:1:0","B4","4n"], ["10:2:0","C#5","2n"],
+  // m12: sa-ku-ra
+  ["11:0:0","B4","4n"], ["11:1:0","B4","4n"], ["11:2:0","C#5","2n"],
+  // m13: ha-na za-ka  (S1 melisme op "za": q + q + 2 achtsten + q, peak C#5)
+  ["12:0:0","F#4","4n"], ["12:1:0","G4","4n"], ["12:2:0","C#5","8n"], ["12:2:2","B4","8n"], ["12:3:0","G4","4n"],
+  // m14: ri
+  ["13:0:0","F#4","1n"]
+];
+const s2Notes = [
+  // m1: Sa-ku-ra (eindigt op G4)
+  ["0:0:0","F#4","4n"], ["0:1:0","F#4","4n"], ["0:2:0","G4","2n"],
+  // m2: sa-ku-ra (eindigt op E4 — anders dan m1)
+  ["1:0:0","F#4","4n"], ["1:1:0","F#4","4n"], ["1:2:0","E4","2n"],
+  // m3: no-ya-ma mo
+  ["2:0:0","F#4","4n"], ["2:1:0","F#4","4n"], ["2:2:0","G4","4n"], ["2:3:0","G4","4n"],
+  // m4: sa-to mo
+  ["3:0:0","F#4","4n"], ["3:1:0","F#4","4n"], ["3:2:0","E4","2n"],
+  // m5: mi-wa-ta-su
+  ["4:0:0","F#4","4n"], ["4:1:0","D4","4n"], ["4:2:0","C#4","4n"], ["4:3:0","D4","4n"],
+  // m6: ka-gi-ri
+  ["5:0:0","D4","4n"], ["5:1:0","B3","4n"], ["5:2:0","C#4","2n"],
+  // m7: Ka-su-mi ka (zelfde als m3)
+  ["6:0:0","F#4","4n"], ["6:1:0","F#4","4n"], ["6:2:0","G4","4n"], ["6:3:0","G4","4n"],
+  // m8: ku-mo ka (zelfde als m4)
+  ["7:0:0","F#4","4n"], ["7:1:0","F#4","4n"], ["7:2:0","E4","2n"],
+  // m9: a-sa-hi ni (zelfde als m5)
+  ["8:0:0","F#4","4n"], ["8:1:0","D4","4n"], ["8:2:0","C#4","4n"], ["8:3:0","D4","4n"],
+  // m10: ni-o-u (zelfde als m6)
+  ["9:0:0","D4","4n"], ["9:1:0","B3","4n"], ["9:2:0","C#4","2n"],
+  // m11: Sa-ku-ra (zelfde als m2)
+  ["10:0:0","F#4","4n"], ["10:1:0","F#4","4n"], ["10:2:0","G4","2n"],
+  // m12: sa-ku-ra (zelfde als m11)
+  ["11:0:0","F#4","4n"], ["11:1:0","F#4","4n"], ["11:2:0","E4","2n"],
+  // m13: ha-na za-ka
+  ["12:0:0","D4","4n"], ["12:1:0","D4","4n"], ["12:2:0","E4","4n"], ["12:3:0","D4","4n"],
+  // m14: ri (twee halve noten: C#4 dan B3)
+  ["13:0:0","C#4","2n"], ["13:2:0","B3","2n"]
+];
+const aNotes = [
+  // m1: Sa-ku-ra (B3 hele maat)
+  ["0:0:0","B3","4n"], ["0:1:0","B3","4n"], ["0:2:0","B3","2n"],
+  // m2: sa-ku-ra (zelfde)
+  ["1:0:0","B3","4n"], ["1:1:0","B3","4n"], ["1:2:0","B3","2n"],
+  // m3: no-ya-ma mo (B3 drone)
+  ["2:0:0","B3","4n"], ["2:1:0","B3","4n"], ["2:2:0","B3","4n"], ["2:3:0","B3","4n"],
+  // m4: sa-to mo (B3 drone)
+  ["3:0:0","B3","4n"], ["3:1:0","B3","4n"], ["3:2:0","B3","2n"],
+  // m5: mi-wa-ta-su (B3 drone met A3 op "su")
+  ["4:0:0","B3","4n"], ["4:1:0","B3","4n"], ["4:2:0","B3","4n"], ["4:3:0","A3","4n"],
+  // m6: ka-gi-ri (lage G3 en F#3!)
+  ["5:0:0","G3","4n"], ["5:1:0","G3","4n"], ["5:2:0","F#3","2n"],
+  // m7: Ka-su-mi ka (zelfde als m3)
+  ["6:0:0","B3","4n"], ["6:1:0","B3","4n"], ["6:2:0","B3","4n"], ["6:3:0","B3","4n"],
+  // m8: ku-mo ka (zelfde als m4)
+  ["7:0:0","B3","4n"], ["7:1:0","B3","4n"], ["7:2:0","B3","2n"],
+  // m9: a-sa-hi ni (zelfde als m5)
+  ["8:0:0","B3","4n"], ["8:1:0","B3","4n"], ["8:2:0","B3","4n"], ["8:3:0","A3","4n"],
+  // m10: ni-o-u (zelfde als m6)
+  ["9:0:0","G3","4n"], ["9:1:0","G3","4n"], ["9:2:0","F#3","2n"],
+  // m11: Sa-ku-ra
+  ["10:0:0","B3","4n"], ["10:1:0","B3","4n"], ["10:2:0","B3","2n"],
+  // m12: sa-ku-ra__ (4 kwarten: B3-A3-G3-A3 met legato tel 3-4)
+  ["11:0:0","B3","4n"], ["11:1:0","A3","4n"], ["11:2:0","G3","4n"], ["11:3:0","A3","4n"],
+  // m13: ha-na za-ka (B3 B3 E3 E3)
+  ["12:0:0","B3","4n"], ["12:1:0","B3","4n"], ["12:2:0","E3","4n"], ["12:3:0","E3","4n"],
+  // m14: ri (hele B3)
+  ["13:0:0","B3","1n"]
+];
+const TOTAL_BARS = 14;
+const BEATS_PER_BAR = 4;
+const TOTAL_BEATS = TOTAL_BARS * BEATS_PER_BAR;
+
+// ============================================================
+// Voice state — mee | focus | uit
+// ============================================================
+const voiceState = { s1: 'mee', s2: 'mee', a: 'mee' };
+const BASE_VOL = { s1: -14, s2: -16, a: -15 };
+const FOCUS_BOOST = 4;
+const DIM_DROP = 14;
+
+function cycleVoice(voice) {
+  const cur = voiceState[voice];
+  let next = cur === 'mee' ? 'focus' : cur === 'focus' ? 'uit' : 'mee';
+  if (next === 'uit') {
+    const othersAllOff = Object.entries(voiceState).filter(([k]) => k !== voice).every(([_, s]) => s === 'uit');
+    if (othersAllOff) next = 'mee';
+  }
+  if (next === 'focus') {
+    for (const v of Object.keys(voiceState)) {
+      if (v !== voice && voiceState[v] === 'focus') voiceState[v] = 'mee';
+    }
+  }
+  voiceState[voice] = next;
+  updateVoiceUI();
+  applyVolumes();
+}
+
+function updateVoiceUI() {
+  for (const v of Object.keys(voiceState)) {
+    const el = document.querySelector(`[data-voice="${v}"]`);
+    if (!el) continue;
+    el.classList.remove('mee', 'focus', 'uit');
+    el.classList.add(voiceState[v]);
+    const lbl = el.querySelector('.voice-state');
+    if (lbl) {
+      lbl.textContent = voiceState[v] === 'focus' ? 'in focus'
+                      : voiceState[v] === 'uit'   ? 'uit' : 'mee';
+    }
+  }
+}
+
+function applyVolumes() {
+  if (!initialized) return;
+  const focusVoice = Object.entries(voiceState).find(([_, s]) => s === 'focus')?.[0];
+  const synths = { s1: synthS1, s2: synthS2, a: synthA };
+  for (const v of ['s1', 's2', 'a']) {
+    const s = voiceState[v];
+    const synth = synths[v];
+    if (!synth) continue;
+    if (s === 'uit') synth.volume.value = -60;
+    else if (s === 'focus') synth.volume.value = BASE_VOL[v] + FOCUS_BOOST;
+    else if (focusVoice) synth.volume.value = BASE_VOL[v] - DIM_DROP;
+    else synth.volume.value = BASE_VOL[v];
+  }
+}
+
+// ============================================================
+// Tone.js setup
+// ============================================================
+let synthS1, synthS2, synthA;
+let partS1, partS2, partA;
+let initialized = false;
+let isPlaying = false;
+let isLooping = true;
+
+async function initAudio() {
+  if (initialized) return;
+  const reverb = new Tone.Reverb({ decay: 2.2, wet: 0.22 }).toDestination();
+
+  // Alle drie de stemmen op piano (Salamander samples via Tone.js CDN)
+  const pianoConfig = {
+    urls: {
+      "A2": "A2.mp3",
+      "A3": "A3.mp3",
+      "A4": "A4.mp3",
+      "A5": "A5.mp3"
+    },
+    baseUrl: "https://tonejs.github.io/audio/salamander/",
+    release: 1.0
+  };
+  synthS1 = new Tone.Sampler(pianoConfig).connect(reverb);
+  synthS2 = new Tone.Sampler(pianoConfig).connect(reverb);
+  synthA  = new Tone.Sampler(pianoConfig).connect(reverb);
+
+  // Wachten tot piano samples geladen zijn voor we beginnen
+  await Tone.loaded();
+
+  partS1 = new Tone.Part((time, ev) => synthS1.triggerAttackRelease(ev.note, ev.duration, time),
+    s1Notes.map(([t, n, d]) => [t, { note: n, duration: d }]));
+  partS1.start(0);
+  partS2 = new Tone.Part((time, ev) => synthS2.triggerAttackRelease(ev.note, ev.duration, time),
+    s2Notes.map(([t, n, d]) => [t, { note: n, duration: d }]));
+  partS2.start(0);
+  partA  = new Tone.Part((time, ev) => synthA.triggerAttackRelease(ev.note, ev.duration, time),
+    aNotes.map(([t, n, d]) => [t, { note: n, duration: d }]));
+  partA.start(0);
+
+  Tone.Transport.bpm.value = parseInt(document.getElementById('tempo').value, 10);
+  Tone.Transport.loop = isLooping;
+  Tone.Transport.loopStart = 0;
+  Tone.Transport.loopEnd = TOTAL_BARS + "m";
+  initialized = true;
+  applyVolumes();
+}
+
+async function ensureInit() {
+  if (!initialized) {
+    await Tone.start();
+    await initAudio();
+  }
+}
+
+// ============================================================
+// UI references
+// ============================================================
+const playBtn = document.getElementById('playBtn');
+const stopBtn = document.getElementById('stopBtn');
+const loopBtn = document.getElementById('loopBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const tempo = document.getElementById('tempo');
+const tempoValue = document.getElementById('tempoValue');
+const status = document.getElementById('status');
+const progressWrap = document.getElementById('progressWrap');
+const progressTrack = document.getElementById('progressTrack');
+const progressFill = document.getElementById('progressFill');
+const progressThumb = document.getElementById('progressThumb');
+const progressTooltip = document.getElementById('progressTooltip');
+const measureDisplay = document.getElementById('measureDisplay');
+const timeDisplay = document.getElementById('timeDisplay');
+
+loopBtn.classList.add('active');
+
+// Build measure ticks on the progress track
+for (let i = 1; i < TOTAL_BARS; i++) {
+  const tick = document.createElement('div');
+  tick.className = 'progress-tick';
+  tick.style.left = (i / TOTAL_BARS * 100) + '%';
+  progressTrack.appendChild(tick);
+}
+
+// ============================================================
+// Voice clicks
+// ============================================================
+document.querySelectorAll('.voice').forEach(v => {
+  v.addEventListener('click', () => cycleVoice(v.dataset.voice));
+});
+
+// ============================================================
+// Tempo
+// ============================================================
+tempo.addEventListener('input', () => {
+  tempoValue.textContent = tempo.value;
+  if (initialized) Tone.Transport.bpm.value = parseInt(tempo.value, 10);
+  updateDisplay();
+});
+
+// ============================================================
+// Transport buttons
+// ============================================================
+loopBtn.addEventListener('click', () => {
+  isLooping = !isLooping;
+  loopBtn.classList.toggle('active', isLooping);
+  if (initialized) Tone.Transport.loop = isLooping;
+  status.textContent = isLooping ? 'herhaalmodus aan' : 'speelt één keer';
+});
+
+playBtn.addEventListener('click', async () => {
+  await ensureInit();
+  if (isPlaying) {
+    Tone.Transport.pause();
+    playBtn.innerHTML = '▶';
+    status.textContent = 'gepauzeerd';
+    isPlaying = false;
+  } else {
+    Tone.Transport.start();
+    playBtn.innerHTML = '❚❚';
+    status.textContent = 'speelt af…';
+    isPlaying = true;
+  }
+});
+
+stopBtn.addEventListener('click', () => {
+  if (!initialized) return;
+  Tone.Transport.stop();
+  Tone.Transport.position = 0;
+  playBtn.innerHTML = '▶';
+  status.textContent = 'gestopt';
+  isPlaying = false;
+  updateDisplay();
+});
+
+prevBtn.addEventListener('click', async () => {
+  await ensureInit();
+  jumpMeasures(-1);
+});
+nextBtn.addEventListener('click', async () => {
+  await ensureInit();
+  jumpMeasures(1);
+});
+
+function jumpMeasures(delta) {
+  const ticksPerMeasure = Tone.Transport.PPQ * BEATS_PER_BAR;
+  const totalTicks = ticksPerMeasure * TOTAL_BARS;
+  let cur = Tone.Transport.ticks % totalTicks;
+  let curMeasure = Math.floor(cur / ticksPerMeasure);
+  let target = Math.max(0, Math.min(TOTAL_BARS - 1, curMeasure + delta));
+  Tone.Transport.ticks = target * ticksPerMeasure;
+  updateDisplay();
+}
+
+// Klik op een lyric-blokje om naar die maat te springen
+document.querySelectorAll('.lyrics-line span').forEach(span => {
+  span.addEventListener('click', async () => {
+    await ensureInit();
+    const measure = parseInt(span.dataset.measure, 10);
+    const ticksPerMeasure = Tone.Transport.PPQ * BEATS_PER_BAR;
+    Tone.Transport.ticks = (measure - 1) * ticksPerMeasure;
+    updateDisplay();
+  });
+});
+
+// ============================================================
+// Click / drag on progress to seek
+// ============================================================
+let isDragging = false;
+
+function pctFromEvent(e) {
+  const rect = progressTrack.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+}
+
+async function seekFromEvent(e) {
+  await ensureInit();
+  const pct = pctFromEvent(e);
+  const totalTicks = Tone.Transport.PPQ * TOTAL_BEATS;
+  Tone.Transport.ticks = Math.floor(pct * totalTicks);
+  updateDisplay();
+}
+
+progressWrap.addEventListener('mousedown', async (e) => {
+  isDragging = true;
+  progressWrap.classList.add('dragging');
+  await seekFromEvent(e);
+});
+document.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  seekFromEvent(e);
+});
+document.addEventListener('mouseup', () => {
+  if (isDragging) {
+    isDragging = false;
+    progressWrap.classList.remove('dragging');
+  }
+});
+
+progressWrap.addEventListener('touchstart', async (e) => {
+  e.preventDefault();
+  isDragging = true;
+  progressWrap.classList.add('dragging');
+  await seekFromEvent(e);
+}, { passive: false });
+document.addEventListener('touchmove', (e) => {
+  if (!isDragging) return;
+  e.preventDefault();
+  seekFromEvent(e);
+}, { passive: false });
+document.addEventListener('touchend', () => {
+  if (isDragging) {
+    isDragging = false;
+    progressWrap.classList.remove('dragging');
+  }
+});
+
+// Hover tooltip for desktop
+progressWrap.addEventListener('mousemove', (e) => {
+  const pct = pctFromEvent(e);
+  const measure = Math.min(TOTAL_BARS, Math.floor(pct * TOTAL_BARS) + 1);
+  progressTooltip.style.left = (pct * 100) + '%';
+  progressTooltip.textContent = `maat ${measure}`;
+});
+
+// ============================================================
+// Display update loop
+// ============================================================
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function updateDisplay() {
+  if (!initialized) {
+    measureDisplay.textContent = `Maat 1 / ${TOTAL_BARS}`;
+    timeDisplay.textContent = '0:00 / 0:00';
+    progressFill.style.width = '0%';
+    progressThumb.style.left = '0%';
+    return;
+  }
+  const ticksPerMeasure = Tone.Transport.PPQ * BEATS_PER_BAR;
+  const totalTicks = ticksPerMeasure * TOTAL_BARS;
+  const curTicks = Tone.Transport.ticks % totalTicks;
+  const pct = curTicks / totalTicks;
+  const measure = Math.min(TOTAL_BARS, Math.floor(curTicks / ticksPerMeasure) + 1);
+
+  progressFill.style.width = (pct * 100) + '%';
+  progressThumb.style.left = (pct * 100) + '%';
+  measureDisplay.textContent = `Maat ${measure} / ${TOTAL_BARS}`;
+
+  // Highlight de huidige maat in de tekst
+  document.querySelectorAll('.lyrics-line span').forEach(s => {
+    s.classList.toggle('active', parseInt(s.dataset.measure, 10) === measure);
+  });
+
+  const bpm = Tone.Transport.bpm.value;
+  const curSec = (curTicks / Tone.Transport.PPQ) / bpm * 60;
+  const totalSec = TOTAL_BEATS / bpm * 60;
+  timeDisplay.textContent = `${formatTime(curSec)} / ${formatTime(totalSec)}`;
+}
+
+function tick() {
+  updateDisplay();
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+
+</body>
+</html>
