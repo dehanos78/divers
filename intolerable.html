@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intolerable Conditions — Oefenbegeleiding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+<style>
+  :root {
+    --ink: #1a1518;
+    --ink-soft: #4a4248;
+    --paper: #f4ede4;
+    --paper-warm: #ebe0d0;
+    --accent: #a63a2e;
+    --accent-deep: #6e2318;
+    --accent-pale: #e8c9c2;
+    --gold: #b8893d;
+    --mute: #a89b9f;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; min-height: 100vh;
+    font-family: 'Inter', sans-serif; color: var(--ink);
+    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-warm) 100%);
+    overflow-x: hidden;
+  }
+  main { max-width: 640px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+  header { text-align: center; margin-bottom: 2.5rem; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 0.75rem;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif; font-weight: 400;
+    font-size: 2.4rem; margin: 0 0 0.3rem; letter-spacing: 0.01em;
+    color: var(--ink);
+  }
+  .subtitle {
+    color: var(--ink-soft); font-size: 0.95rem; font-style: italic;
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .card {
+    background: rgba(255, 252, 247, 0.75);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(166, 58, 46, 0.15);
+    border-radius: 4px; padding: 2rem 1.75rem; margin-bottom: 1.25rem;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset, 0 20px 40px -20px rgba(110, 35, 24, 0.15);
+  }
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.25em;
+    color: var(--accent-deep); margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .section-label::before, .section-label::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-pale), transparent);
+  }
+  .tempo-row { display: flex; align-items: center; gap: 1rem; }
+  .tempo-row label {
+    font-family: 'Cormorant Garamond', serif; font-size: 1.05rem;
+    color: var(--ink-soft); white-space: nowrap;
+  }
+  .tempo-value {
+    font-family: 'JetBrains Mono', monospace; font-weight: 500;
+    color: var(--accent-deep); font-size: 1.1rem;
+    min-width: 3rem; text-align: right;
+  }
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none;
+    flex: 1; height: 2px; background: var(--accent-pale); outline: none; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 18px; height: 18px; background: var(--accent-deep);
+    border-radius: 50%; cursor: pointer; border: 3px solid var(--paper);
+    box-shadow: 0 2px 6px rgba(110,35,24,0.4); transition: transform 0.15s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px; height: 18px; background: var(--accent-deep);
+    border-radius: 50%; cursor: pointer; border: 3px solid var(--paper);
+  }
+  .transport {
+    display: flex; justify-content: center; align-items: center;
+    gap: 0.75rem; margin: 2rem 0 1.5rem; flex-wrap: wrap;
+  }
+  .play-btn {
+    width: 76px; height: 76px; border-radius: 50%; border: none;
+    background: var(--accent-deep); color: white; font-size: 1.8rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 30px -8px rgba(110,35,24,0.5), inset 0 1px 0 rgba(255,255,255,0.15);
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .play-btn:hover { transform: scale(1.05); }
+  .play-btn:active { transform: scale(0.96); }
+  .secondary-btn {
+    width: 48px; height: 48px; border-radius: 50%;
+    border: 1px solid var(--accent-pale); background: white;
+    color: var(--ink-soft); font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease;
+  }
+  .secondary-btn:hover { border-color: var(--accent); color: var(--accent-deep); }
+  .secondary-btn.active { background: var(--gold); color: white; border-color: var(--gold); }
+  .skip-btn { font-size: 0.85rem; font-weight: 500; font-family: 'Inter', sans-serif; }
+
+  .position-info {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-top: 0.5rem; margin-bottom: 0.5rem;
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--ink-soft); font-style: italic;
+  }
+  .measure-display {
+    font-family: 'JetBrains Mono', monospace; font-style: normal;
+    color: var(--accent-deep); font-size: 0.95rem; font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+  .time-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem; color: var(--ink-soft);
+  }
+
+  .progress-wrap { position: relative; padding: 14px 0; cursor: pointer; user-select: none; }
+  .progress-track {
+    height: 8px; background: var(--accent-pale); border-radius: 4px;
+    position: relative; overflow: visible;
+  }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-deep));
+    border-radius: 4px; pointer-events: none;
+    position: absolute; top: 0; left: 0;
+    transition: width 0.08s linear;
+  }
+  .progress-tick {
+    position: absolute; top: -3px;
+    height: calc(100% + 6px); width: 1.5px;
+    background: rgba(110, 35, 24, 0.3);
+    pointer-events: none;
+  }
+  .progress-tick.major {
+    background: rgba(110, 35, 24, 0.7);
+    width: 2px;
+  }
+  .progress-thumb {
+    position: absolute; top: 50%;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--accent-deep); border: 2.5px solid white;
+    box-shadow: 0 2px 8px rgba(110, 35, 24, 0.5);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    transition: transform 0.15s, left 0.08s linear;
+    left: 0%;
+  }
+  .progress-wrap:hover .progress-thumb { transform: translate(-50%, -50%) scale(1.25); }
+  .progress-wrap.dragging .progress-thumb { transform: translate(-50%, -50%) scale(1.35); }
+
+  .progress-tooltip {
+    position: absolute; bottom: calc(100% - 4px); left: 0;
+    transform: translateX(-50%);
+    background: var(--ink); color: white;
+    padding: 0.3rem 0.55rem; border-radius: 3px;
+    font-size: 0.7rem; font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.03em; white-space: nowrap;
+    pointer-events: none; opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .progress-tooltip::after {
+    content: ''; position: absolute;
+    top: 100%; left: 50%; transform: translateX(-50%);
+    border: 4px solid transparent; border-top-color: var(--ink);
+  }
+  .progress-wrap:hover .progress-tooltip { opacity: 0.95; }
+
+  .status-bar {
+    text-align: center; font-family: 'Cormorant Garamond', serif;
+    font-style: italic; font-size: 1rem; color: var(--ink-soft); min-height: 1.4em;
+    margin-top: 0.5rem;
+  }
+
+  .phase {
+    margin-top: 1.5rem; padding: 1.1rem 1rem;
+    border-top: 1px solid var(--accent-pale);
+  }
+  .phase + .phase {
+    border-top-style: dashed;
+    border-top-color: rgba(110, 35, 24, 0.2);
+    margin-top: 0.5rem;
+  }
+  .phase-header {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 0.8rem;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .phase-header .range { color: var(--ink-soft); font-weight: 400; }
+
+  .lyric-line {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 0.2em 0.5em; margin: 0.5rem 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem; color: var(--ink-soft); line-height: 1.6;
+    text-align: center;
+  }
+  .lyric-line .phrase {
+    padding: 4px 10px; border-radius: 4px; cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease;
+    display: inline-flex; align-items: baseline; gap: 0.4em;
+  }
+  .lyric-line .phrase:hover {
+    background: rgba(166, 58, 46, 0.12);
+  }
+  .lyric-line .phrase.active {
+    background: rgba(166, 58, 46, 0.22);
+    color: var(--ink); font-weight: 500;
+  }
+  .lyric-line .phrase .mnum {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; color: var(--mute); font-weight: 500;
+  }
+  .breath {
+    display: inline-block; padding: 2px 10px;
+    color: var(--accent); font-style: italic;
+    font-family: 'Cormorant Garamond', serif; font-size: 0.9rem;
+    opacity: 0.7;
+  }
+  .legend {
+    margin-top: 1rem; text-align: center;
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 0.85rem; color: var(--ink-soft);
+  }
+  .legend b { font-style: normal; font-weight: 600; color: var(--accent-deep); }
+
+  footer {
+    text-align: center; margin-top: 2rem; font-size: 0.8rem;
+    color: var(--ink-soft); opacity: 0.7; font-style: italic;
+    font-family: 'Cormorant Garamond', serif;
+  }
+  footer code {
+    font-family: 'JetBrains Mono', monospace; font-style: normal;
+    background: rgba(166, 58, 46, 0.08); padding: 1px 5px; border-radius: 3px;
+    color: var(--accent-deep);
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <header>
+    <div class="eyebrow">N · maat 237–254</div>
+    <h1>Intolerable Conditions</h1>
+    <div class="subtitle">oefenbegeleiding · B♭ mineur · 4/4</div>
+  </header>
+
+  <div class="card">
+    <div class="section-label">Tempo</div>
+    <div class="tempo-row">
+      <label>♩ =</label>
+      <input type="range" id="tempo" min="40" max="120" value="60" step="1">
+      <span class="tempo-value" id="tempoValue">60</span>
+    </div>
+
+    <div class="transport">
+      <button class="secondary-btn" id="loopBtn" title="Herhalen">↻</button>
+      <button class="secondary-btn skip-btn" id="prevBtn" title="Maat terug">−1</button>
+      <button class="play-btn" id="playBtn" aria-label="Afspelen">▶</button>
+      <button class="secondary-btn skip-btn" id="nextBtn" title="Maat vooruit">+1</button>
+      <button class="secondary-btn" id="stopBtn" title="Stop">■</button>
+    </div>
+
+    <div class="position-info">
+      <span class="measure-display" id="measureDisplay">maat 237 / 254</span>
+      <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
+    </div>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-track" id="progressTrack">
+        <div class="progress-fill" id="progressFill"></div>
+        <div class="progress-thumb" id="progressThumb"></div>
+        <div class="progress-tooltip" id="progressTooltip">maat 237</div>
+      </div>
+    </div>
+    <div class="status-bar" id="status">klik op de balk of een zin om naar een maat te springen</div>
+
+    <div class="phase">
+      <div class="phase-header"><span>Opbouw</span><span class="range">maat 237 – 245</span></div>
+      <div class="lyric-line">
+        <span class="phrase" data-measure="1"><span class="mnum">237</span>In-tol-er-a-ble con-di-tions</span>
+        <span class="breath">∨</span>
+      </div>
+      <div class="lyric-line">
+        <span class="phrase" data-measure="3"><span class="mnum">239</span>in-tol-er-a-ble</span>
+        <span class="breath">∨</span>
+      </div>
+      <div class="lyric-line">
+        <span class="phrase" data-measure="5"><span class="mnum">241</span>in-tol-er-a-ble con-di-tions</span>
+        <span class="breath">∨</span>
+      </div>
+      <div class="lyric-line">
+        <span class="phrase" data-measure="7"><span class="mnum">243</span>con-di-tions, con-di-tions, con-di-tions</span>
+        <span class="breath">∨</span>
+      </div>
+      <div class="lyric-line">
+        <span class="phrase" data-measure="8"><span class="mnum">244</span>con-di-tions, con-di-tions</span>
+        <span class="breath">∨</span>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-header"><span>Slotzin (sustained)</span><span class="range">maat 246 – 254</span></div>
+      <div class="lyric-line">
+        <span class="phrase" data-measure="10"><span class="mnum">246</span>in &nbsp;·&nbsp; to &nbsp;·&nbsp; le &nbsp;·&nbsp; ra &nbsp;·&nbsp; ble &nbsp;·&nbsp; con &nbsp;·&nbsp; di &nbsp;· · ·&nbsp; tions</span>
+      </div>
+    </div>
+
+    <div class="legend">
+      solmisatie: <b>l</b> = B♭ · <b>t</b> = C · <b>d</b> = D♭ · <b>r</b> = E♭ · <b>m</b> = F · <b>si</b> = A · <b>l′</b> = B♭ (octaaf) &nbsp;·&nbsp; <b>∨</b> = adem
+    </div>
+  </div>
+
+  <footer>
+    sectie <code>N</code> · 18 maten · piano-begeleiding voor stemmig oefenen
+  </footer>
+</main>
+
+<script>
+// ============================================================
+// Music data — Intolerable Conditions in B♭ minor
+// maten 237–254 → 18 interne maten (0..17), 4/4
+// Solmisatie → Bb-mineur:
+//   l=Bb3, t=C4, d=Db4, r=Eb4, m=F4, si=A4, l'=Bb4
+// ============================================================
+const nNotes = [
+  // bar 0 (m237) — "In-tol-er-a"  l l t d  (kwartnoten)
+  ["0:0:0","Bb3","4n"], ["0:1:0","Bb3","4n"], ["0:2:0","C4","4n"], ["0:3:0","Db4","4n"],
+  // bar 1 (m238) — "ble con-di-tions"  r m si l'  (kwartnoten, opgaand)
+  ["1:0:0","Eb4","4n"], ["1:1:0","F4","4n"], ["1:2:0","A4","4n"], ["1:3:0","Bb4","4n"],
+
+  // bar 2 (m239) — "in-tol-er-a-ble"  l l t d (achtsten) + r (halve)
+  ["2:0:0","Bb3","8n"], ["2:0:2","Bb3","8n"], ["2:1:0","C4","8n"], ["2:1:2","Db4","8n"],
+  ["2:2:0","Eb4","2n"],
+
+  // bar 3 (m240) — adem (geen noten)
+
+  // bar 4 (m241) — "in-tol-er-a"  l l t d
+  ["4:0:0","Bb3","4n"], ["4:1:0","Bb3","4n"], ["4:2:0","C4","4n"], ["4:3:0","Db4","4n"],
+  // bar 5 (m242) — "ble con-di-tions"  r m si l'
+  ["5:0:0","Eb4","4n"], ["5:1:0","F4","4n"], ["5:2:0","A4","4n"], ["5:3:0","Bb4","4n"],
+
+  // bar 6 (m243) — "con-di-tions × 3"  m si l', in achtste-triolen (3 tellen) + rust
+  ["6:0:0","F4","8t"],       ["6:0:1.333","A4","8t"], ["6:0:2.667","Bb4","8t"],
+  ["6:1:0","F4","8t"],       ["6:1:1.333","A4","8t"], ["6:1:2.667","Bb4","8t"],
+  ["6:2:0","F4","8t"],       ["6:2:1.333","A4","8t"], ["6:2:2.667","Bb4","8t"],
+
+  // bar 7 (m244) — "con-di-tions × 2"  m si l m si l (6 achtsten) + rust
+  ["7:0:0","F4","8n"], ["7:0:2","A4","8n"], ["7:1:0","Bb4","8n"],
+  ["7:1:2","F4","8n"], ["7:2:0","A4","8n"], ["7:2:2","Bb4","8n"],
+
+  // bar 8 (m245) — adem
+
+  // ===== Slotzin, maat 246–254 — "in-to-le-ra-ble con-di-tions"  l l t d r m si l'
+  // bar 9  (m246) — "in"    l   (hele)
+  ["9:0:0","Bb3","1n"],
+  // bar 10 (m247) — "to"    l
+  ["10:0:0","Bb3","1n"],
+  // bar 11 (m248) — "le"    t
+  ["11:0:0","C4","1n"],
+  // bar 12 (m249) — "ra"    d
+  ["12:0:0","Db4","1n"],
+  // bar 13 (m250) — "ble"   r
+  ["13:0:0","Eb4","1n"],
+  // bar 14 (m251) — "con"   m
+  ["14:0:0","F4","1n"],
+  // bar 15–16 beat 2 (m252–253 h1) — "di"  si  (6 tellen, gepunte hele)
+  ["15:0:0","A4","1n."],
+  // bar 16 beat 2 – end bar 17 (m253 h2–254) — "tions"  l'  (6 tellen)
+  ["16:2:0","Bb4","1n."]
+];
+
+const TOTAL_BARS = 18;
+const START_MEASURE = 237;      // display offset
+const BEATS_PER_BAR = 4;
+const TOTAL_BEATS = TOTAL_BARS * BEATS_PER_BAR;
+
+// Phase boundary (0-indexed internal bar where slotzin begins): bar 9 = m246
+const PHASE_BREAK_BAR = 9;
+
+// ============================================================
+// Tone.js setup
+// ============================================================
+let synth;
+let part;
+let initialized = false;
+let isPlaying = false;
+let isLooping = true;
+
+async function initAudio() {
+  if (initialized) return;
+  const reverb = new Tone.Reverb({ decay: 2.6, wet: 0.25 }).toDestination();
+
+  const pianoConfig = {
+    urls: {
+      "A2": "A2.mp3", "A3": "A3.mp3", "A4": "A4.mp3", "A5": "A5.mp3"
+    },
+    baseUrl: "https://tonejs.github.io/audio/salamander/",
+    release: 1.2
+  };
+  synth = new Tone.Sampler(pianoConfig).connect(reverb);
+  synth.volume.value = -10;
+
+  await Tone.loaded();
+
+  part = new Tone.Part((time, ev) => synth.triggerAttackRelease(ev.note, ev.duration, time),
+    nNotes.map(([t, n, d]) => [t, { note: n, duration: d }]));
+  part.start(0);
+
+  Tone.Transport.bpm.value = parseInt(document.getElementById('tempo').value, 10);
+  Tone.Transport.loop = isLooping;
+  Tone.Transport.loopStart = 0;
+  Tone.Transport.loopEnd = TOTAL_BARS + "m";
+  initialized = true;
+}
+
+async function ensureInit() {
+  if (!initialized) {
+    await Tone.start();
+    await initAudio();
+  }
+}
+
+// ============================================================
+// UI references
+// ============================================================
+const playBtn = document.getElementById('playBtn');
+const stopBtn = document.getElementById('stopBtn');
+const loopBtn = document.getElementById('loopBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const tempo = document.getElementById('tempo');
+const tempoValue = document.getElementById('tempoValue');
+const status = document.getElementById('status');
+const progressWrap = document.getElementById('progressWrap');
+const progressTrack = document.getElementById('progressTrack');
+const progressFill = document.getElementById('progressFill');
+const progressThumb = document.getElementById('progressThumb');
+const progressTooltip = document.getElementById('progressTooltip');
+const measureDisplay = document.getElementById('measureDisplay');
+const timeDisplay = document.getElementById('timeDisplay');
+
+loopBtn.classList.add('active');
+
+// Measure ticks
+for (let i = 1; i < TOTAL_BARS; i++) {
+  const tick = document.createElement('div');
+  tick.className = 'progress-tick' + (i === PHASE_BREAK_BAR ? ' major' : '');
+  tick.style.left = (i / TOTAL_BARS * 100) + '%';
+  progressTrack.appendChild(tick);
+}
+
+// ============================================================
+// Tempo
+// ============================================================
+tempo.addEventListener('input', () => {
+  tempoValue.textContent = tempo.value;
+  if (initialized) Tone.Transport.bpm.value = parseInt(tempo.value, 10);
+  updateDisplay();
+});
+
+// ============================================================
+// Transport
+// ============================================================
+loopBtn.addEventListener('click', () => {
+  isLooping = !isLooping;
+  loopBtn.classList.toggle('active', isLooping);
+  if (initialized) Tone.Transport.loop = isLooping;
+  status.textContent = isLooping ? 'herhaalmodus aan' : 'speelt één keer';
+});
+
+playBtn.addEventListener('click', async () => {
+  await ensureInit();
+  if (isPlaying) {
+    Tone.Transport.pause();
+    playBtn.innerHTML = '▶';
+    status.textContent = 'gepauzeerd';
+    isPlaying = false;
+  } else {
+    Tone.Transport.start();
+    playBtn.innerHTML = '❚❚';
+    status.textContent = 'speelt af…';
+    isPlaying = true;
+  }
+});
+
+stopBtn.addEventListener('click', () => {
+  if (!initialized) return;
+  Tone.Transport.stop();
+  Tone.Transport.position = 0;
+  playBtn.innerHTML = '▶';
+  status.textContent = 'gestopt';
+  isPlaying = false;
+  updateDisplay();
+});
+
+prevBtn.addEventListener('click', async () => { await ensureInit(); jumpMeasures(-1); });
+nextBtn.addEventListener('click', async () => { await ensureInit(); jumpMeasures(1); });
+
+function jumpMeasures(delta) {
+  const ticksPerMeasure = Tone.Transport.PPQ * BEATS_PER_BAR;
+  const totalTicks = ticksPerMeasure * TOTAL_BARS;
+  let cur = Tone.Transport.ticks % totalTicks;
+  let curMeasure = Math.floor(cur / ticksPerMeasure);
+  let target = Math.max(0, Math.min(TOTAL_BARS - 1, curMeasure + delta));
+  Tone.Transport.ticks = target * ticksPerMeasure;
+  updateDisplay();
+}
+
+// Click on a lyric phrase to jump
+document.querySelectorAll('.phrase').forEach(span => {
+  span.addEventListener('click', async () => {
+    await ensureInit();
+    const measure = parseInt(span.dataset.measure, 10); // internal 1-based
+    const ticksPerMeasure = Tone.Transport.PPQ * BEATS_PER_BAR;
+    Tone.Transport.ticks = (measure - 1) * ticksPerMeasure;
+    updateDisplay();
+  });
+});
+
+// ============================================================
+// Click / drag on progress to seek
+// ============================================================
+let isDragging = false;
+
+function pctFromEvent(e) {
+  const rect = progressTrack.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+}
+
+async function seekFromEvent(e) {
+  await ensureInit();
+  const pct = pctFromEvent(e);
+  const totalTicks = Tone.Transport.PPQ * TOTAL_BEATS;
+  Tone.Transport.ticks = Math.floor(pct * totalTicks);
+  updateDisplay();
+}
+
+progressWrap.addEventListener('mousedown', async (e) => {
+  isDragging = true;
+  progressWrap.classList.add('dragging');
+  await seekFromEvent(e);
+});
+document.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  seekFromEvent(e);
+});
+document.addEventListener('mouseup', () => {
+  if (isDragging) { isDragging = false; progressWrap.classList.remove('dragging'); }
+});
+
+progressWrap.addEventListener('touchstart', async (e) => {
+  e.preventDefault();
+  isDragging = true;
+  progressWrap.classList.add('dragging');
+  await seekFromEvent(e);
+}, { passive: false });
+document.addEventListener('touchmove', (e) => {
+  if (!isDragging) return;
+  e.preventDefault();
+  seekFromEvent(e);
+}, { passive: false });
+document.addEventListener('touchend', () => {
+  if (isDragging) { isDragging = false; progressWrap.classList.remove('dragging'); }
+});
+
+progressWrap.addEventListener('mousemove', (e) => {
+  const pct = pctFromEvent(e);
+  const internalMeasure = Math.min(TOTAL_BARS, Math.floor(pct * TOTAL_BARS) + 1);
+  const displayMeasure = internalMeasure + (START_MEASURE - 1);
+  progressTooltip.style.left = (pct * 100) + '%';
+  progressTooltip.textContent = `maat ${displayMeasure}`;
+});
+
+// ============================================================
+// Display update loop
+// ============================================================
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function updateDisplay() {
+  if (!initialized) {
+    measureDisplay.textContent = `maat ${START_MEASURE} / ${START_MEASURE + TOTAL_BARS - 1}`;
+    timeDisplay.textContent = '0:00 / 0:00';
+    progressFill.style.width = '0%';
+    progressThumb.style.left = '0%';
+    return;
+  }
+  const ticksPerMeasure = Tone.Transport.PPQ * BEATS_PER_BAR;
+  const totalTicks = ticksPerMeasure * TOTAL_BARS;
+  const curTicks = Tone.Transport.ticks % totalTicks;
+  const pct = curTicks / totalTicks;
+  const internalMeasure = Math.min(TOTAL_BARS, Math.floor(curTicks / ticksPerMeasure) + 1);
+  const displayMeasure = internalMeasure + (START_MEASURE - 1);
+
+  progressFill.style.width = (pct * 100) + '%';
+  progressThumb.style.left = (pct * 100) + '%';
+  measureDisplay.textContent = `maat ${displayMeasure} / ${START_MEASURE + TOTAL_BARS - 1}`;
+
+  // Highlight current phrase: the phrase whose data-measure is the highest ≤ current
+  const phrases = Array.from(document.querySelectorAll('.phrase'));
+  let activePhrase = null;
+  for (const p of phrases) {
+    const m = parseInt(p.dataset.measure, 10);
+    if (m <= internalMeasure) activePhrase = p;
+    else break;
+  }
+  phrases.forEach(p => p.classList.toggle('active', p === activePhrase));
+
+  const bpm = Tone.Transport.bpm.value;
+  const curSec = (curTicks / Tone.Transport.PPQ) / bpm * 60;
+  const totalSec = TOTAL_BEATS / bpm * 60;
+  timeDisplay.textContent = `${formatTime(curSec)} / ${formatTime(totalSec)}`;
+}
+
+function tick() { updateDisplay(); requestAnimationFrame(tick); }
+tick();
+</script>
+
+</body>
+</html>
